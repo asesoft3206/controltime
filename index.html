@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Acceso de Empleado</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#3b82f6",
+                        "background-light": "#f4f4f5",
+                        "background-dark": "#18181b",
+                    },
+                    fontFamily: {
+                        display: ["Roboto", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.5rem",
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        body { font-family: 'Roboto', sans-serif; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display flex items-center justify-center min-h-screen">
+    <div class="w-full max-w-md p-8 space-y-8 bg-white dark:bg-zinc-800 rounded-lg shadow-lg">
+        <div class="text-center">
+            <h1 class="text-3xl font-bold text-zinc-900 dark:text-white">Acceso de Empleado</h1>
+            <p class="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Ingrese sus credenciales para continuar</p>
+        </div>
+
+        <form action="validar_login.php" class="mt-8 space-y-6" method="POST">
+            <input type="hidden" id="latitud" name="latitud">
+            <input type="hidden" id="longitud" name="longitud">
+
+            <div class="rounded-md shadow-sm -space-y-px">
+                <div>
+                    <label class="sr-only" for="login">Usuario</label>
+                    <div class="relative">
+                        <span class="material-icons-outlined absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-400">person</span>
+                        <input class="appearance-none relative block w-full pl-10 pr-3 py-3 border border-zinc-300 dark:border-zinc-600 placeholder-zinc-500 dark:placeholder-zinc-400 text-zinc-900 dark:text-white bg-white dark:bg-zinc-700 rounded-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm" 
+                               id="login" name="login" placeholder="Usuario" required="" type="text" autocomplete="off"/>
+                    </div>
+                </div>
+                <div class="pt-4">
+                    <label class="sr-only" for="password">Contraseña</label>
+                    <div class="relative">
+                        <span class="material-icons-outlined absolute inset-y-0 left-0 pl-3 flex items-center text-zinc-400">lock</span>
+                        <input class="appearance-none relative block w-full pl-10 pr-3 py-3 border border-zinc-300 dark:border-zinc-600 placeholder-zinc-500 dark:placeholder-zinc-400 text-zinc-900 dark:text-white bg-white dark:bg-zinc-700 rounded-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm" 
+                               id="password" name="password" placeholder="Contraseña" required="" type="password" autocomplete="off"/>
+                    </div>
+                </div>
+            </div>
+
+            <div id="geo-container" class="hidden flex flex-col items-center space-y-3 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-md border border-yellow-200 dark:border-yellow-700">
+                <p id="geo-message" class="text-sm text-center text-yellow-800 dark:text-yellow-200">
+                    <span class="font-bold">Acceso Móvil Detectado:</span><br>
+                    Se requiere ubicación para fichar.
+                </p>
+                <button type="button" id="btn-request-geo" class="flex items-center px-3 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-medium rounded shadow transition-colors">
+                    <span class="material-icons-outlined text-sm mr-2">my_location</span>
+                    Activar Ubicación
+                </button>
+            </div>
+
+            <div class="flex items-center justify-end">
+                <div class="text-sm">
+                    <a class="font-medium text-primary hover:text-blue-400" href="#">
+                        ¿Olvidó su contraseña?
+                    </a>
+                </div>
+            </div>
+
+            <div>
+                <button id="btn-login" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed" type="submit">
+                    Iniciar Sesión
+                </button>
+            </div>
+        </form>
+        
+        <div class="text-center">
+            <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                ¿No tiene una cuenta? <a class="font-medium text-primary hover:text-blue-400" href="#">Contacte a RR.HH.</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+    window.onload = function() {
+        // Limpiar campos
+        var loginInput = document.getElementById("login");
+        var passwordInput = document.getElementById("password");
+        if(loginInput) loginInput.value = "";
+        if(passwordInput) passwordInput.value = "";
+
+        // Iniciar lógica de seguridad
+        iniciarSeguridadMovil();
+    };
+
+    function iniciarSeguridadMovil() {
+        const btnLogin = document.getElementById("btn-login");
+        const geoContainer = document.getElementById("geo-container");
+        const geoMessage = document.getElementById("geo-message");
+        const btnRequestGeo = document.getElementById("btn-request-geo");
+        
+        // Detectar si es móvil
+        const esMovil = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+        if (esMovil) {
+            // BLOQUEAR LOGIN INICIALMENTE
+            btnLogin.disabled = true;
+            btnLogin.innerText = "Esperando ubicación...";
+            geoContainer.classList.remove("hidden"); // Mostrar caja amarilla
+
+            // Configurar el botón de solicitud manual
+            btnRequestGeo.onclick = function() {
+                solicitarUbicacion();
+            };
+
+            // Intentar automáticamente primero (por si ya tienen permisos de antes)
+            // Si falla, no mostramos error agresivo, solo dejamos el botón manual
+            navigator.geolocation.getCurrentPosition(
+                exitoUbicacion, 
+                function(error) { console.log("Auto-ubicación fallida, esperando manual."); }
+            );
+
+        } else {
+            // Es PC
+            console.log("PC detectado. Sin restricciones.");
+        }
+    }
+
+    function solicitarUbicacion() {
+        const geoMessage = document.getElementById("geo-message");
+        geoMessage.innerHTML = "Solicitando permiso...";
+        
+        if (!navigator.geolocation) {
+            mostrarError("Tu navegador no soporta geolocalización.");
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(exitoUbicacion, errorUbicacion, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        });
+    }
+
+    function exitoUbicacion(position) {
+        const btnLogin = document.getElementById("btn-login");
+        const geoContainer = document.getElementById("geo-container");
+        
+        // Rellenar campos ocultos
+        document.getElementById('latitud').value = position.coords.latitude;
+        document.getElementById('longitud').value = position.coords.longitude;
+
+        // Desbloquear interfaz
+        btnLogin.disabled = false;
+        btnLogin.innerText = "Iniciar Sesión";
+        
+        // Cambiar aspecto de la caja de mensaje a Éxito
+        geoContainer.className = "flex flex-col items-center space-y-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-md border border-green-200 dark:border-green-700";
+        geoContainer.innerHTML = '<p class="text-sm text-center text-green-800 dark:text-green-200 font-bold"><span class="material-icons-outlined align-middle text-sm mr-1">check_circle</span>Ubicación verificada</p>';
+    }
+
+    function errorUbicacion(error) {
+        let mensaje = "Error desconocido.";
+        
+        // Detección específica de error por falta de HTTPS
+        if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+            mensaje = "⚠️ <b>ERROR CRÍTICO:</b> La geolocalización requiere <b>HTTPS</b>. Si estás usando una IP (http://...), los móviles bloquean la ubicación por seguridad.";
+        } else {
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    mensaje = "🚫 Acceso denegado. Debes pulsar 'Permitir' cuando el navegador te pregunte.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    mensaje = "⚠️ La información de ubicación no está disponible. Enciende el GPS.";
+                    break;
+                case error.TIMEOUT:
+                    mensaje = "⏰ Se agotó el tiempo. Inténtalo de nuevo.";
+                    break;
+            }
+        }
+        mostrarError(mensaje);
+    }
+
+    function mostrarError(msg) {
+        const geoMessage = document.getElementById("geo-message");
+        geoMessage.innerHTML = msg;
+        geoMessage.className = "text-sm text-center text-red-600 dark:text-red-400 font-bold";
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<?php
+session_start();
+if (!isset($_SESSION["servername"])) {
+    header("Location: index.html");
+    exit();
+}
+?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Asistencia</title>
+    
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet"/>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: "#3B82F6" },
+                    fontFamily: { display: ["Roboto", "sans-serif"] },
+                },
+            },
+        };
+    </script>
+</head>
+<body class="bg-gray-100 font-display text-gray-800 min-h-screen p-4">
+
+    <div class="max-w-5xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+        
+        <header class="bg-gray-800 text-white p-4 sm:p-6 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+            <h1 class="text-xl sm:text-2xl font-bold flex items-center">
+                <span class="material-icons-outlined mr-2">admin_panel_settings</span>
+                Control de Presencia
+            </h1>
+            
+            <div class="flex items-center space-x-3">
+                <button onclick="abrirModalFirma()" class="flex items-center bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition text-sm font-medium">
+                    <span class="material-icons-outlined text-sm mr-2">settings</span>
+                    Administración
+                </button>
+
+                <a href="cerrar_sesion.php" class="flex items-center bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition text-sm font-medium">
+                    <span class="material-icons-outlined text-sm mr-2">logout</span>
+                    Cerrar Sesión
+                </a>
+            </div>
+        </header>
+
+        <main class="p-4 sm:p-8">
+            <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
+                <h2 class="text-lg font-semibold text-blue-800 mb-4">Registro Manual / Consulta</h2>
+                
+                <form method="post" action="registrar.php" class="flex flex-col sm:flex-row gap-4 items-end">
+                    <input type="hidden" name="origen" value="principal.html"> 
+                    <div class="w-full sm:w-auto flex-grow">
+                        <label for="codigo" class="block text-sm font-medium text-gray-700 mb-1">Código de Trabajador:</label>
+                        <div class="relative">
+                            <span class="material-icons-outlined absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">badge</span>
+                            <input type="text" id="codigo" name="codigo" required 
+                                class="pl-10 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50" 
+                                placeholder="Ingrese ID o NIF">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="w-full sm:w-auto bg-primary hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-md shadow transition flex justify-center items-center">
+                        <span class="material-icons-outlined mr-2">send</span>
+                        Registrar
+                    </button>
+                </form>
+                <p id="mensaje" class="mt-2 text-sm text-green-600 font-medium"></p>
+            </div>
+
+            <div>
+                <div class="flex items-center mb-4">
+                    <span class="material-icons-outlined text-gray-500 mr-2">list_alt</span>
+                    <h2 class="text-xl font-bold text-gray-800">Personal Actualmente Trabajando</h2>
+                </div>
+                
+                <div class="overflow-x-auto bg-white border border-gray-200 rounded-lg shadow-sm">
+                    <div id="listado" class="p-4 min-w-full">
+                        <p class="text-gray-500 italic">Cargando datos...</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="modalFirma" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-sm mx-4 overflow-hidden">
+            <div class="bg-gray-800 px-4 py-3 flex justify-between items-center">
+                <h3 class="text-lg font-medium text-white flex items-center">
+                    <span class="material-icons-outlined mr-2">lock</span> Acceso Administrativo
+                </h3>
+                <button onclick="cerrarModalFirma()" class="text-gray-400 hover:text-white">
+                    <span class="material-icons-outlined">close</span>
+                </button>
+            </div>
+            <div class="p-6">
+                <p class="text-sm text-gray-600 mb-4">Por seguridad, ingrese su firma digital para continuar.</p>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Firma Digital (5 dígitos)</label>
+                    <input type="password" id="inputFirma" maxlength="5" class="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 tracking-widest text-center text-xl" placeholder="•••••">
+                    <p id="errorFirma" class="text-red-500 text-xs mt-1 hidden"></p>
+                </div>
+
+                <div class="flex justify-end space-x-3">
+                    <button onclick="cerrarModalFirma()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition">Cancelar</button>
+                    <button onclick="verificarFirma()" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition flex items-center">
+                        <span class="material-icons-outlined text-sm mr-1">check_circle</span> Acceder
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- MODAL Y VERIFICACIÓN DE FIRMA ---
+        function abrirModalFirma() {
+            document.getElementById('modalFirma').classList.remove('hidden');
+            document.getElementById('inputFirma').value = '';
+            document.getElementById('errorFirma').classList.add('hidden');
+            document.getElementById('inputFirma').focus();
+        }
+
+        function cerrarModalFirma() {
+            document.getElementById('modalFirma').classList.add('hidden');
+        }
+
+        function verificarFirma() {
+            const firma = document.getElementById('inputFirma').value;
+            const errorDiv = document.getElementById('errorFirma');
+
+            if (firma.length !== 5) {
+                errorDiv.innerText = "La firma debe tener 5 dígitos.";
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('firma', firma);
+
+            fetch('verificar_firma_acceso.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                // Verificamos si la respuesta es exitosa
+                if (!response.ok) {
+                    throw new Error("Error HTTP: " + response.status);
+                }
+                return response.text(); // Primero obtenemos texto por si no es JSON válido
+            })
+            .then(text => {
+                try {
+                    const data = JSON.parse(text); // Intentamos convertir a JSON
+                    if (data.success) {
+                        window.location.href = 'administracion.php';
+                    } else {
+                        errorDiv.innerText = data.message || "Firma incorrecta.";
+                        errorDiv.classList.remove('hidden');
+                    }
+                } catch (e) {
+                    console.error("Respuesta del servidor no es JSON:", text);
+                    errorDiv.innerText = "Error técnico: El servidor devolvió una respuesta inválida (ver consola).";
+                    errorDiv.classList.remove('hidden');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                errorDiv.innerText = "Error de conexión o sistema.";
+                errorDiv.classList.remove('hidden');
+            });
+        }
+
+        // Permitir Enter en el input de firma
+        document.getElementById('inputFirma').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                verificarFirma();
+            }
+        });
+
+        // --- TEMPORIZADOR DE INACTIVIDAD ---
+        let tiempoInactividad = 5 * 60 * 1000; // 5 minutos
+        let temporizador;
+
+        function reiniciarTemporizador() {
+            clearTimeout(temporizador);
+            temporizador = setTimeout(cerrarSesion, tiempoInactividad);
+        }
+
+        function cerrarSesion() {
+            window.location.href = "cerrar_sesion.php";
+        }
+
+        document.addEventListener('mousemove', reiniciarTemporizador);
+        document.addEventListener('keypress', reiniciarTemporizador);
+        document.addEventListener('click', reiniciarTemporizador);
+        reiniciarTemporizador();
+
+        // --- AJAX PARA LISTADO ---
+        function obtenerListado() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.onreadystatechange = function() {
+                if (this.readyState == 4 && this.status == 200) {
+                    document.getElementById("listado").innerHTML = this.responseText;
+                    
+                    const tabla = document.querySelector('#listado table');
+                    if(tabla) {
+                        tabla.classList.add('min-w-full', 'divide-y', 'divide-gray-200');
+                        const celdas = tabla.querySelectorAll('td, th');
+                        celdas.forEach(celda => celda.classList.add('px-6', 'py-3', 'text-left', 'text-xs', 'font-medium', 'uppercase', 'tracking-wider'));
+                    }
+                }
+            };
+            xhttp.open("GET", "obtener_listado.php", true);
+            xhttp.send();
+        }
+
+        window.onload = function() {
+            obtenerListado();
+            document.getElementById('codigo').focus();
+        };
+    </script>
+</body>
+</html>

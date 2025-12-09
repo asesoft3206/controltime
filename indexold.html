@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Login</h1>
+    <form method="post" action="validar_login.php">
+      <label for="login">Usuario:</label>
+      <input type="text" id="login" name="login" required autocomplete="off"><br><br>
+      <label for="password">Contraseña:</label>
+      <input type="password" id="password" name="password" required autocomplete="off"><br><br>
+      <button type="submit">Iniciar sesión</button>
+    </form>
+  </div>
+<script>
+window.onload = function() {
+  // Limpiar los campos del formulario al cargar la página
+  var loginInput = document.getElementById("login");
+  var passwordInput = document.getElementById("password");
+  loginInput.value = "";
+  passwordInput.value = "";
+};
+</script>
+</body>
+</html>
