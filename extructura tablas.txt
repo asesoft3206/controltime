@@ -24,11 +24,11 @@ CREATE TABLE `trabajadores` (
   `ide` int(11) NOT NULL DEFAULT 1,
   `ID` smallint(9) NOT NULL,
   `NIF` varchar(12) CHARACTER SET utf8 COLLATE utf8_spanish_ci NOT NULL,
-  `nombre` varchar(40) NOT NULL COMMENT 'NOMBRE COMPLETO DEL TRABAJADOR',
-  `grupo` int(11) NOT NULL DEFAULT 1 COMMENT 'muestra el grupo de trabajadores al que pertenece, valores en grupos_trabajadores',
-  `NOMBRECORTO` varchar(40) DEFAULT NULL COMMENT 'NOMBRE DEL TRABAJADOR',
+  `nombre` varchar(40) NOT NULL,
+  `activo` int(11) NOT NULL DEFAULT 1,
+  `NOMBRECORTO` varchar(40) DEFAULT NULL,
   `APELLIDOS` varchar(60) DEFAULT NULL,
-  `DIRECCION` varchar(40) DEFAULT NULL COMMENT 'APELLIDOS',
+  `DIRECCION` varchar(40) DEFAULT NULL,
   `CP` varchar(5) DEFAULT NULL,
   `POBLACION` varchar(20) DEFAULT NULL,
   `PROVINCIA` varchar(20) DEFAULT NULL,
@@ -65,7 +65,7 @@ CREATE TABLE `trabajadores` (
   `empresa` int(11) NOT NULL,
   `seleccionado` int(1) NOT NULL DEFAULT 1,
   `codart` varchar(15) DEFAULT NULL,
-  `activo` int(1) NOT NULL DEFAULT 1 COMMENT 'muestra si el trabajador esta activo  ',
+  `mostrar` int(1) NOT NULL DEFAULT 1,
   `controlcalidad` int(1) NOT NULL DEFAULT 0,
   `horascontrato` float(4,2) DEFAULT 8.00,
   `num_taquilla` int(11) DEFAULT NULL,
@@ -91,16 +91,3 @@ CREATE TABLE `ticados` (
   `localizacion_salida` varchar(45) DEFAULT NULL,
   PRIMARY KEY (`id`,`ide`)
 ) ENGINE=InnoDB AUTO_INCREMENT=180044 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
-CREATE TABLE `calendario_laboral` (
-  `fecha` date NOT NULL,
-  `festivo` int(1) NOT NULL DEFAULT 0,
-  `almuerzo` int(1) NOT NULL DEFAULT 0,
-  `merienda` int(1) NOT NULL DEFAULT 0,
-  `inicio_almuerzo` time DEFAULT NULL,
-  `fin_almuerzo` time DEFAULT NULL,
-  `inicio_merienda` time DEFAULT NULL,
-  `fin_merienda` time DEFAULT NULL,
-  `fecha_insercion` timestamp NULL DEFAULT NULL,
-  `fecha_modificacion` timestamp NULL DEFAULT NULL,
-  UNIQUE KEY `fecha` (`fecha`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;
